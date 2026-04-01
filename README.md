@@ -12,26 +12,36 @@
 ---
 
 ## 🛠️ Key Features
-- **🦀 Rust-Native Core**: Sub-millisecond overhead.
-- **🧠 Predictive AI**: Rhythmic Variance Analysis for bot detection.
-- **🔍 Structural Fingerprinting**: Fuzzy similarity detection for payloads.
+- **🦀 Rust-Native Core**: Sub-millisecond overhead ($<1\mu s$ per check).
+- **🧠 Predictive AI**: **EMA (Exponential Moving Average)** Rhythmic Analysis.
+- **🔍 Structural Fingerprinting**: Canonization of JSON bodies to detect attack DNA.
 - **💾 Brain Persistence**: Saves its learning in `oxide.brain`.
 - **📜 Industrial Logs**: 1GB auto-rotating log system.
 
-## ⚡ Performance: Rust vs Pure Node.js
-Why use a native engine?
-- **Sub-microsecond filtering**: Rust handles IP tracking in O(1) time without blocking the Node.js Event Loop.
-- **No Garbage Collector**: Unlike JS, Rust doesn't suffer from memory spikes during massive attacks.
-- **Throughput**: **Native Shield Guard** can handle **10x to 50x** more concurrent requests than typical JS-based middlewares during flood events.
+---
 
-## 📦 Installation
-```bash
-npm install healthcare-firewall
-```
+## 🧠 Deep Tech: Engineering Behind the Shield
+### 1. EMA Predictive AI (Rhythmic Variance)
+Most firewalls use simple counters. **Native Shield Guard** tracks a sliding window of **15 request intervals** and calculates:
+- **Variance Analysis**: Uses the **Exponential Moving Average (EMA)** to calculate a weighted variance.
+- **CV Detection**: If the **Coefficient of Variation (CV)** drops below 0.12, the motor detects a mechanical pattern (bot). Legitimate humans produce a high "jitter" (variance), while scripts emit a perfect, mechanical "beat".
 
-## 🛡️ Quick Start
+### 2. Structural Fingerprinting (DNA Canonization)
+Polymorphic attacks change values (emails, IDs) to evade simple similarity checks. Our engine performs **Structural Shearing**:
+- **Algorithm**: The JSON is stripped of values, keys are recursively sorted, and primitive types are mapped (S for String, N for Number).
+- **Hashing**: A deterministic hash is generated from the "Skeleton". If two different payloads share the same skeleton and high suspicious scores, the entire **Attack Pattern** is blacklisted globally.
+
+### 3. The Performance Gap: Rust vs Pure Node.js 🏎️
+Why is a native engine mandatory for this?
+- **No Garbage Collector (GC)**: In a massive attack, Node.js spends half its time cleaning up Memory Heap. Rust manages memory manually, processing **10x to 50x** more requests without CPU spikes.
+- **Bitwise CMS**: Our **Count-Min Sketch** is implemented with bitwise hashing in O(1) time. Trying to track 1 million IPs with a JavaScript `Map` would consume gigabytes of RAM and eventually crash the event loop.
+- **SIMD Optimized**: Rust uses CPU instructions (where available) to speed up JSON scanning and similarity checks.
+
+---
+
+## ⚡ Quick Start
 ```javascript
-const { recordEvent, predictThreat, initFirewall } = require('healthcare-firewall');
+const { recordEvent, predictThreat, initFirewall } = require('native-shield-guard');
 
 initFirewall();
 
@@ -44,25 +54,18 @@ app.use((req, res, next) => {
 });
 ```
 
----
-
-## 🏳️ Other Languages
-- [Leer en Español (README_ES.md)](./README_ES.md)
-- [Ler em Português (README_PT.md)](./README_PT.md)
-
 ## 📊 API Reference
 
 | Function | Description |
 | :--- | :--- |
 | `initFirewall()` | Initializes the native Rust engine. |
 | `loadIntelligence()` | Loads the `.brain` model weights. |
-| `saveIntelligence()` | Persists the predictive model to disk. |
-| `predictThreat(ip, finger)` | Returns a threat score (0.0 to 1.0) based on rhythm. |
-| `analyzeStructuralSimilarity(ip, h, b, s)` | Detects polymorphic attacks via Fuzzy Matching. |
-| `checkMaliciousInput(ip, text)` | Scans for SQLi, XSS, and Path Traversal. |
-| `analyzeBehavior(ip, path, finger)` | Handles Honeypots and violation counting. |
+| `getStructuralSignature(body)` | Returns the DNA hash of a JSON body structure. |
+| `predictThreat(ip, finger)` | Returns a threat score (0.0 to 1.0) using EMA logic. |
+| `analyzeBehavior(ip, path, finger)` | Handles Honeypots and Reputation Score. |
 | `logMessage(ip, msg)` | Writes a custom message to the 1GB rotating log. |
-| `reloadConfig()` | Hot-reloads the JSON configuration. |
+
+---
 
 ## ⚖️ License
-MIT
+MIT License © 2026 - **Villalba Ricardo Daniel**

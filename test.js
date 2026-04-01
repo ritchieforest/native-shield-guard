@@ -148,9 +148,38 @@ app.post('/api/secure-login', (req, res) => {
   res.status(401).json({ status: 'fail', message: 'Credenciales inválidas.' });
 });
 
+// 🛡️🧪 NUEVA PRUEBA: ADN JSON (Firma Estructural)
+// Detecta si envías diferentes emails/passwords pero con la misma estructura sospechosa
+app.post('/api/test-signature', (req, res) => {
+  const { getStructuralSignature, analyzeBehavior } = require('./index.js');
+  const ip = req.ip || '127.0.0.1';
+  const bodyStr = JSON.stringify(req.body);
+  
+  // 1. ADN del JSON
+  const signature = getStructuralSignature(bodyStr);
+  
+  // 2. ¿Es una firma bloqueada o sospechosa?
+  const isSafe = analyzeBehavior(ip, req.path, signature);
+  
+  if (!isSafe) {
+    return res.status(403).json({ 
+      status: "Blocked by Native-Shield-Guard", 
+      reason: "Structural Pattern Blacklisted", 
+      signature 
+    });
+  }
+
+  res.json({ 
+    status: "Approved", 
+    message: "Structural pattern check passed", 
+    signature 
+  });
+});
+
 const PORT = 3000;
 app.listen(PORT, () => {
-  console.log(`[OXIDE-GATE] Activo con Inteligencia Estructural en puerto ${PORT}`);
-  console.log(`- Insights: GET /api/shield/insights`);
-  console.log(`- Status: GET /api/shield/status`);
+  console.log(`[NATIVE-SHIELD-GUARD] Activo con Inteligencia Estructural en puerto ${PORT}`);
+  console.log(`- Insights:  GET  http://localhost:${PORT}/api/shield/insights`);
+  console.log(`- Status:    GET  http://localhost:${PORT}/api/shield/status`);
+  console.log(`- Test Body: POST http://localhost:${PORT}/api/test-signature`);
 });

@@ -25,7 +25,24 @@ O **Native Shield Guard** NÃO é um firewall tradicional. É um **Motor de Prot
 
 ---
 
-## ⚡ Rendimento: Rust vs Node.js Puro 🏎️
+## 🧠 Ciência Profunda: Como funciona
+### 1. IA Preditiva (Análise de Variância Rítmica)
+A maioria dos bots é programada para atacar em intervalos fixos (ex: exatamente a cada 250ms). Os humanos são irregulares.
+- **Algoritmo**: Rastreamos uma janela deslizante dos últimos 5 intervalos entre requisições.
+- **Detecção**: Calculamos a **variância** desses intervalos. Uma variância próxima de zero indica um robô mecânico. A irregularidade humana gera uma variância alta, mantendo os usuários legítimos seguros.
+
+### 2. Assinatura Estrutural (Similaridade Jaro-Winkler)
+Atacantes alteram valores (senhas/e-mails), mas geralmente mantêm a estrutura JSON idêntica.
+- **Algoritmo**: Utilizamos a **distância de Jaro-Winkler** (através da biblioteca `strsim` em Rust) para comparar o "esqueleto" de novos ataques com padrões já conhecidos.
+- **Resultado**: Se a pontuação de similaridade for >0.9, a requisição é bloqueada como um ataque polimórfico, independentemente dos valores enviados.
+
+### 3. Poder Nativo vs Node.js Puro
+- **Count-Min Sketch**: Usamos uma matriz probabilística em Rust para rastrear milhões de IPs com uso de memória **fixo** e acesso em tempo O(1). Fazer isso em JS com um `Map` acabaria travando o processo devido ao consumo de RAM.
+- **Zero GC**: Rust não possui Garbage Collector. Isso significa que não há pausas inesperadas durante a filtragem de segurança crítica.
+
+---
+
+## ⚡ Performance: Rust vs Node.js Puro 🚀
 Por que usar um motor nativo? 🚀
 - **Filtragem em Microssegundos**: O Rust gerencia o rastreamento de IPs em tempo constante O(1) sem bloquear o Event Loop do Node.js.
 - **Sem Garbage Collector**: Ao contrário do JS, o Rust não sofre picos de memória ou pausas para coleta de lixo durante ataques massivos.
@@ -51,25 +68,7 @@ Por que usar um motor nativo? 🚀
 
 ## 📦 Instalação
 ```bash
-npm install healthcare-firewall
-```
-
----
-
-## 🛡️ Início Rápido
-```javascript
-const { recordEvent, predictThreat, initFirewall } = require('healthcare-firewall');
-
-initFirewall();
-
-app.use((req, res, next) => {
-  recordEvent(req.ip, req.headers['user-agent']);
-  
-  if (predictThreat(req.ip, req.headers['user-agent']) > 0.8) {
-    return res.status(403).send("Bloqueado pela Inteligência do Native Shield Guard");
-  }
-  next();
-});
+npm install native-shield-guard
 ```
 
 ---

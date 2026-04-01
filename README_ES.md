@@ -12,116 +12,54 @@
 2.  **Ataques Polimórficos:** Identifica ataques incluso si cambian su contenido pero mantienen su estructura "esqueletal".
 3.  **Honeypots Activos:** Banea automáticamente IPs que intentan acceder a rutas prohibidas (`/admin`, `.env`).
 4.  **Escaneo de Inyecciones:** Filtra SQLi, XSS y Path Traversal a través del motor nativo.
-5.  **Ahorro de CPU:** Al bloquear ataques en el pre-filtro predictivo, evitas procesar peticiones maliciosas en tu lógica de Node.js.
 
 ---
 
-## 🛠️ Tecnologías Clave
-- **🦀 Núcleo Nativo**: Construido en Rust para un consumo de recursos casi nulo.
-- **🧠 IA Predictiva**: Análisis de varianza rítmica para detectar ataques mecánicos.
-- **🔍 Huella Estructural**: Comparación difusa (Fuzzy Matching) de payloads JSON.
-- **💾 Persistencia**: Guarda todo el aprendizaje en el archivo `oxide.brain`.
-- **📜 Logs Industriales**: Sistema nativo de logs rotativos de 1GB.
+## 🔬 Ciencia Profunda: Ingeniería Tras el Escudo
+
+### 1. IA Predictiva: Análisis EMA (Rhythmic Variance) 📈
+La mayoría de los firewalls usan contadores simples. **Native Shield Guard** rastrea una ventana deslizante de **15 intervalos de tiempo** entre peticiones y calcula:
+- **Análisis de Varianza**: Utiliza el **Promedio Móvil Exponencial (EMA)** para calcular una varianza ponderada en tiempo real.
+- **Detección CV**: Si el **Coeficiente de Variación (CV)** cae por debajo de 0.12, el motor detecta un patrón mecánico (bot). Los humanos legítimos producen una varianza alta ("jitter"), mientras que los scripts emiten un "latido" mecánico perfecto.
+
+### 2. Huella Estructural: Canonización de ADN JSON 🧬
+Los ataques polimórficos cambian valores (correos, IDs) para evadir las firmas tradicionales. Nuestro motor realiza el **Esquematizado Estructural**:
+- **Algoritmo**: El JSON es despojado de sus valores, las llaves se ordenan recursivamente y los tipos primitivos se mapean (S para String, N para Number, etc).
+- **Hashing**: Se genera un hash determinante del "Esqueleto". Si dos payloads comparten el mismo esqueleto sospechoso, el **Patrón de Ataque** completo es bloqueado desde cualquier IP.
+
+### 3. La Brecha de Rendimiento: Rust vs Node.js Puro 🏎️
+¿Por qué es obligatorio un motor nativo para esto?
+- **Sin Garbage Collector (GC)**: En un ataque masivo, Node.js consume la mitad de su tiempo limpiando el Heap de Memoria. Rust gestiona la memoria manualmente, procesando entre **10 y 50 veces más peticiones** sin picos de CPU.
+- **Bitwise CMS**: Nuestro **Count-Min Sketch** está implementado con hashing a nivel de bits en tiempo O(1). Intentar rastrear 1 millón de IPs con un `Map` de JavaScript consumiría gigabytes de RAM y colapsaría el event-loop.
+- **Optimizado para SIMD**: Rust utiliza instrucciones especiales del procesador para acelerar el escaneo de JSON y el cálculo de similitudes.
 
 ---
 
-## ⚡ Rendimiento: Rust vs Node.js Puro 🏎️
-¿Por qué usar un motor nativo? 🚀
-- **Filtrado en Microsegundos**: Rust gestiona el rastreo de IPs en tiempo constante O(1) sin bloquear el Event Loop de Node.js.
-- **Sin Garbage Collector**: A diferencia de JS, Rust no sufre picos de memoria ni parones por recolección de basura durante ataques masivos.
-- **Throughput Extremo**: **Native Shield Guard** es entre **10 y 50 veces más rápido** que los middlewares de seguridad basados puramente en JavaScript cuando hay una inundación de peticiones.
-
----
-
-## 📦 Instalación
-```bash
-npm install healthcare-firewall
-```
-
----
-
-## 🛡️ Ejemplo de Implementación Profesional (Middleware)
-
+## ⚡ Implementación Rápida
 ```javascript
-const { 
-  initFirewall, 
-  loadIntelligence, 
-  recordEvent, 
-  predictThreat, 
-  checkAccess, 
-  analyzeStructuralSimilarity, 
-  checkMaliciousInput, 
-  analyzeBehavior, 
-  logMessage 
-} = require('healthcare-firewall');
+const { recordEvent, predictThreat, initFirewall } = require('native-shield-guard');
 
 initFirewall();
-loadIntelligence();
 
 app.use((req, res, next) => {
-  // Priorizar X-Forwarded-For para simulaciones de salto de IP / Proxy
-  const forwarded = req.headers['x-forwarded-for'];
-  const ip = forwarded ? forwarded.split(',')[0] : (req.ip || req.connection.remoteAddress);
-  const path = req.path;
-  const userAgent = req.headers['user-agent'] || 'not-fingerprinted';
-
-  // 0. INTELIGENCIA PREDICTIVA (Pre-filtro Heurístico) 🕵️‍♂️📈
-  recordEvent(ip, userAgent);
-  const predictionScore = predictThreat(ip, userAgent);
-  
-  if (predictionScore >= 0.8) {
-    const logInfo = `Mechanical behavior detected (Threat Score: ${predictionScore.toFixed(2)})`;
-    console.error(`[PREDICTIVE BLOCK] IP: ${ip} | ${logInfo}`);
-    logMessage(ip, logInfo);
-    return res.status(403).json({ error: 'Mechanical behavior detected', score: predictionScore });
+  recordEvent(req.ip, req.headers['user-agent']);
+  if (predictThreat(req.ip, req.headers['user-agent']) > 0.8) {
+    return res.status(403).send("Blocked by Native Shield Guard");
   }
-
-  // I. Filtro de Acceso Básico (IP Whitelist / Blacklist Activa)
-  if (!checkAccess(ip, path)) {
-    return res.status(403).json({ 
-      error: 'Acceso denegado', 
-      message: 'Ruta no permitida o IP bloqueada temporalmente.' 
-    });
-  }
-
-  // II. Fingerprinting Estructural
-  const bodyStr = JSON.stringify(req.body || {});
-  const structuralRisk = analyzeStructuralSimilarity(ip, 'fingerprint', bodyStr, bodyStr.length);
-
-  if (structuralRisk > 0.9) {
-    return res.status(403).json({ error: 'Ataque detectado por similitud estructural' });
-  }
-
-  // III. Escaneo por Firmas
-  if (checkMaliciousInput(ip, bodyStr)) {
-    return res.status(403).json({ error: 'Inyección detectada' });
-  }
-
-  // IV. Análisis de Comportamiento (Honeypots)
-  if (!analyzeBehavior(ip, path, userAgent)) {
-    return res.status(403).json({ error: 'IP Identificada como maliciosa' });
-  }
-
   next();
 });
 ```
-
----
 
 ## 📊 Referencia Completa de la API
 
 | Función | Descripción |
 | :--- | :--- |
-| `initFirewall()` | Inicializa el motor nativo de Rust y carga las reglas. |
-| `loadState()` / `saveState()` | Gestiona la persistencia de baneos y listas negras. |
-| `loadIntelligence()` | Carga los pesos y ritmos del modelo `.brain`. |
-| `saveIntelligence()` | Persiste el modelo predictivo (IA) en el disco. |
-| `predictThreat(ip, finger)` | Devuelve el puntaje de riesgo rítmico (0.0 a 1.0). |
-| `analyzeStructuralSimilarity(ip, h, b, s)` | Detecta ataques polimórficos mediante Fuzzy Matching. |
-| `checkMaliciousInput(ip, texto)` | Escaneo nativo ultra-rápido de inyecciones (SQLi, XSS). |
-| `analyzeBehavior(ip, path, finger)` | Gestiona Honeypots y el sistema de avisos de reputación. |
-| `logMessage(ip, msg)` | Escribre en los logs rotativos industriales de 1GB. |
-| `reloadConfig()` | Recarga el archivo JSON de configuración en caliente. |
+| `initFirewall()` | Inicializa el motor nativo de Rust. |
+| `loadIntelligence()` / `saveIntelligence()` | Gestiona el aprendizaje persistente del modelo `.brain`. |
+| `getStructuralSignature(body)` | Devuelve el hash de ADN de la estructura de un JSON. |
+| `predictThreat(ip, finger)` | Devuelve un puntaje de riesgo (0.0 a 1.0) usando lógica EMA. |
+| `analyzeBehavior(ip, path, finger)` | Gestiona Honeypots y Score de Reputación. |
+| `logMessage(ip, msg)` | Escribe logs industriales de 1GB en formato rotativo. |
 
 ---
 

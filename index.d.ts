@@ -7,15 +7,14 @@ export declare function reloadConfig(): boolean
 export declare function saveState(): boolean
 export declare function loadState(): boolean
 export declare function initFirewall(): boolean
-export declare function cleanupRecords(maxAgeSecs: number): number
+export declare function getStructuralSignature(body: string): string
 export declare function analyzeStructuralSimilarity(ip: string, headers: string, body: string, size: number): number
 export declare function logMessage(ip: string, message: string): void
 export declare function saveIntelligence(): void
 export declare function loadIntelligence(): void
-export declare function getSecurityInsights(): Record<string, number>
 export declare function checkAccess(ip: string, path: string): boolean
 export declare function checkMaliciousInput(ip: string, input: string): boolean
 export declare function analyzeBehavior(ip: string, path: string, fingerprint: string): boolean
-export declare function getSecurityStatus(): Record<string, number>
 export declare function recordEvent(ip: string, fingerprint: string): void
 export declare function predictThreat(ip: string, fingerprint: string): number
+export declare function getSecurityStatus(): Record<string, number>
