@@ -1,0 +1,22 @@
+{
+  "urls_enabled": [
+    "/api/v1/public-stats-by-element",
+    "/api/shield/status",
+    "/api/shield/reload",
+    "/api/shield/insights",
+    "/api/shield/save"
+  ],
+  "allowed_ips": [
+    "*"
+  ],
+  "security_enabled": true,
+  "max_violations": 3,
+  "honeypots": [
+    "/phpmyadmin",
+    "/wp-login.php",
+    "/.env"
+  ],
+  "max_score": 100.0,
+  "logging_enabled": true,
+  "log_file": "firewall.log"
+}

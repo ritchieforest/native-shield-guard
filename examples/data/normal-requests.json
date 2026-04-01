@@ -1,0 +1,9 @@
+[
+  { "action": "get_user_profile", "user_id": 1024, "fields": ["name", "email", "avatar"] },
+  { "action": "search_catalog", "query": "security_camera_4k", "page": 1, "sort": "desc" },
+  { "action": "update_settings", "theme": "dark", "notifications": true, "lang": "es" },
+  { "action": "fetch_logs", "service": "firewall", "limit": 50, "order": "desc" },
+  { "action": "get_system_health", "check": "cpu_memory", "verbose": false },
+  { "action": "export_report", "format": "pdf", "range": "last_24h", "compressed": true },
+  { "action": "ping_service", "service_target": "auth_node", "timeout": 2000 }
+]

@@ -1,0 +1,17 @@
+# Dependencias
+node_modules/
+/healthcare-firewall.node
+
+# Rust / Compilación
+target/
+Cargo.lock
+
+# Logs y Persistencia (Datos locales sensibles/pesados)
+.log/
+*.log
+firewall-state.json
+oxide.brain
+
+# Otros
+.DS_Store
+.env
