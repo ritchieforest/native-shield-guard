@@ -1,4 +1,4 @@
-# Oxide-Gate (Native Shield Guard) 🛡️🦀
+# Native Shield Guard 🛡️🦀
 
 **A Próxima Geração de Segurança Proativa para Node.js.**  
 *Motor de segurança nativo de alta performance impulsionado por Rust e Inteligência Preditiva.*
@@ -6,7 +6,7 @@
 ---
 
 ## 🚀 Para que serve esta biblioteca?
-O **Oxide-Gate** NÃO é um firewall tradicional. É um **Motor de Proteção Comportamental** construído em Rust. Serve para proteger suas aplicações web de ataques que os firewalls comuns não conseguem ver:
+O **Native Shield Guard** NÃO é um firewall tradicional. É um **Motor de Proteção Comportamental** construído em Rust. Serve para proteger suas aplicações web de ataques que os firewalls comuns não conseguem ver:
 
 1.  **Bots de Força Bruta Rítmicos:** Detecta e bloqueia bots que atacam com intervalos constantes (ex: a cada 250ms).
 2.  **Ataques Polimórficos:** Identifica ataques mesmo que mudem seu conteúdo, mas mantenham sua estrutura básica.
@@ -25,11 +25,11 @@ O **Oxide-Gate** NÃO é um firewall tradicional. É um **Motor de Proteção Co
 
 ---
 
-## ⚡ Performance: Rust vs Node.js Puro
+## ⚡ Rendimento: Rust vs Node.js Puro 🏎️
 Por que usar um motor nativo? 🚀
 - **Filtragem em Microssegundos**: O Rust gerencia o rastreamento de IPs em tempo constante O(1) sem bloquear o Event Loop do Node.js.
 - **Sem Garbage Collector**: Ao contrário do JS, o Rust não sofre picos de memória ou pausas para coleta de lixo durante ataques massivos.
-- **Throughput Extremo**: O Oxide-Gate é de **10 a 50 vezes mais rápido** que os middlewares de segurança baseados puramente em JavaScript durante eventos de inundação de requisições.
+- **Throughput Extremo**: O **Native Shield Guard** é de **10 a 50 vezes mais rápido** que os middlewares de segurança baseados puramente em JavaScript durante eventos de inundação de requisições.
 
 ---
 
@@ -66,7 +66,7 @@ app.use((req, res, next) => {
   recordEvent(req.ip, req.headers['user-agent']);
   
   if (predictThreat(req.ip, req.headers['user-agent']) > 0.8) {
-    return res.status(403).send("Bloqueado pela Inteligência do Oxide-Gate");
+    return res.status(403).send("Bloqueado pela Inteligência do Native Shield Guard");
   }
   next();
 });

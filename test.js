@@ -23,7 +23,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // 1. Inicialización: Cargar estado y cerebro predictivo
-console.log('[OXIDE-GATE] Cargando estado y modelo predictivo...');
+console.log('[NATIVE-SHIELD-GUARD] Cargando estado y modelo predictivo...');
 initFirewall();
 loadIntelligence();
 
@@ -31,7 +31,7 @@ loadIntelligence();
 setInterval(() => {
   saveState();
   saveIntelligence();
-  console.log('[OXIDE-GATE] Estado y modelo .brain persistidos.');
+  console.log('[NATIVE-SHIELD-GUARD] Estado y modelo .brain persistidos.');
 }, 30000);
 
 // 3. Mantenimiento: Limpiar registros de IP de más de 24 horas cada hora

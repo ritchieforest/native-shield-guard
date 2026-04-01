@@ -1,4 +1,4 @@
-# Oxide-Gate (Native Shield Guard) 🛡️🦀
+# Native Shield Guard 🛡️🦀
 
 **La Próxima Generación de Seguridad Proactiva para Node.js.**  
 *Motor de seguridad nativo de alto rendimiento impulsado por Rust e Inteligencia Predictiva.*
@@ -6,7 +6,7 @@
 ---
 
 ## 🚀 ¿Para qué sirve esta librería?
-**Oxide-Gate** NO es un firewall tradicional. Es un **Motor de Protección Conductual** construido en Rust. Sirve para proteger tus aplicaciones web de ataques que los firewalls comunes no ven:
+**Native Shield Guard** NO es un firewall tradicional. Es un **Motor de Protección Conductual** construido en Rust. Sirve para proteger tus aplicaciones web de ataques que los firewalls comunes no ven:
 
 1.  **Bots de Fuerza Bruta rítmicos:** Detecta y bloquea bots que atacan con intervalos constantes (ej: cada 250ms).
 2.  **Ataques Polimórficos:** Identifica ataques incluso si cambian su contenido pero mantienen su estructura "esqueletal".
@@ -29,7 +29,7 @@
 ¿Por qué usar un motor nativo? 🚀
 - **Filtrado en Microsegundos**: Rust gestiona el rastreo de IPs en tiempo constante O(1) sin bloquear el Event Loop de Node.js.
 - **Sin Garbage Collector**: A diferencia de JS, Rust no sufre picos de memoria ni parones por recolección de basura durante ataques masivos.
-- **Throughput Extremo**: Oxide-Gate es entre **10 y 50 veces más rápido** que los middlewares de seguridad basados puramente en JavaScript cuando hay una inundación de peticiones.
+- **Throughput Extremo**: **Native Shield Guard** es entre **10 y 50 veces más rápido** que los middlewares de seguridad basados puramente en JavaScript cuando hay una inundación de peticiones.
 
 ---
 
@@ -84,40 +84,22 @@ app.use((req, res, next) => {
     });
   }
 
-  // II. Fingerprinting Estructural (Analizando la "forma" de la petición)
-  const headerFingerprint = Object.keys(req.headers)
-    .sort()
-    .map(key => `${key}:${req.headers[key]}`)
-    .join('|');
-  
+  // II. Fingerprinting Estructural
   const bodyStr = JSON.stringify(req.body || {});
-  const structuralRisk = analyzeStructuralSimilarity(ip, headerFingerprint, bodyStr, bodyStr.length);
+  const structuralRisk = analyzeStructuralSimilarity(ip, 'fingerprint', bodyStr, bodyStr.length);
 
   if (structuralRisk > 0.9) {
-    console.warn(`[POLIMORPHIC ATTACK DETECTED] IP: ${ip} | Riesgo Estructural: ${structuralRisk}`);
-    return res.status(403).json({ 
-      error: 'Ataque detectado por similitud estructural', 
-      message: 'Tu petición es sospechosamente similar a un patrón de ataque conocido.' 
-    });
+    return res.status(403).json({ error: 'Ataque detectado por similitud estructural' });
   }
 
-  // III. Escaneo por Firmas (Regex Tradicional para SQLi/XSS)
-  const inspectionData = [req.url, bodyStr].join(' ');
-  if (checkMaliciousInput(ip, inspectionData)) {
-    console.warn(`[VULNERABILITY DETECTED] IP: ${ip} | Path: ${path}`);
-    return res.status(403).json({ 
-      error: 'Inyección detectada', 
-      message: 'Se ha registrado una violación de seguridad.' 
-    });
+  // III. Escaneo por Firmas
+  if (checkMaliciousInput(ip, bodyStr)) {
+    return res.status(403).json({ error: 'Inyección detectada' });
   }
 
-  // IV. Análisis de Comportamiento (Honeypots / Score de Reputación)
+  // IV. Análisis de Comportamiento (Honeypots)
   if (!analyzeBehavior(ip, path, userAgent)) {
-    console.warn(`[REPUTATION BLOCK] IP: ${ip} | Score de reputación excedido.`);
-    return res.status(403).json({ 
-      error: 'IP Identificada como maliciosa', 
-      message: 'Tu reputación ha superado el límite de seguridad permitido.' 
-    });
+    return res.status(403).json({ error: 'IP Identificada como maliciosa' });
   }
 
   next();

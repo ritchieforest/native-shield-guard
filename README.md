@@ -1,10 +1,10 @@
-# Oxide-Gate (Native Shield Guard) 🛡️🦀
+# Native Shield Guard 🛡️🦀
 
 **The Next Generation of Proactive Security for Node.js.**  
 *High-performance native firewall powered by Rust and Predictive Intelligence.*
 
-## 🚀 What is Oxide-Gate?
-**Oxide-Gate** is NOT a traditional firewall. It is a **Behavioral Protection Engine** built in Rust. It serves to protect your web applications (Express, Fastify, etc.) from:
+## 🚀 What is Native Shield Guard?
+**Native Shield Guard** is NOT a traditional firewall. It is a **Behavioral Protection Engine** built in Rust. It serves to protect your web applications (Express, Fastify, etc.) from:
 1.  **DDoS & Bruteforce**: Detecting mechanical request rhythms.
 2.  **Polymorphic Attacks**: Identifying malicious payloads even if they change their content but keep their structure.
 3.  **Scanners & Crawlers**: Automatically banning IPs that touch forbidden routes (Honeypots).
@@ -22,7 +22,7 @@
 Why use a native engine?
 - **Sub-microsecond filtering**: Rust handles IP tracking in O(1) time without blocking the Node.js Event Loop.
 - **No Garbage Collector**: Unlike JS, Rust doesn't suffer from memory spikes during massive attacks.
-- **Throughput**: Oxide-Gate can handle **10x to 50x** more concurrent requests than typical JS-based middlewares during flood events.
+- **Throughput**: **Native Shield Guard** can handle **10x to 50x** more concurrent requests than typical JS-based middlewares during flood events.
 
 ## 📦 Installation
 ```bash
@@ -38,7 +38,7 @@ initFirewall();
 app.use((req, res, next) => {
   recordEvent(req.ip, req.headers['user-agent']);
   if (predictThreat(req.ip, req.headers['user-agent']) > 0.8) {
-    return res.status(403).send("Blocked by Oxide-Gate");
+    return res.status(403).send("Blocked by Native Shield Guard");
   }
   next();
 });
