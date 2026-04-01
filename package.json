@@ -29,11 +29,11 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/your-org/native-shield-guard"
+    "url": "https://github.com/ritchieforest/native-shield-guard/"
   },
-  "homepage": "https://github.com/your-org/native-shield-guard#readme",
+  "homepage": "https://github.com/ritchieforest/native-shield-guard/#readme",
   "bugs": {
-    "url": "https://github.com/your-org/native-shield-guard/issues"
+    "url": "https://github.com/ritchieforest/native-shield-guard/issues"
   },
   "main": "index.js",
   "types": "index.d.ts",
