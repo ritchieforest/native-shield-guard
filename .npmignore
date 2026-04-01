@@ -1,0 +1,59 @@
+# NPM Publish Ignore List
+# Files NOT included when publishing to npm
+
+# Development & Build
+.git/
+.github/
+.gitignore
+target/
+build/
+dist/
+*.rs
+Cargo.toml
+Cargo.lock
+build.rs
+*.o
+*.so
+*.a
+
+# Development Files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+node_modules/
+npm-debug.log
+yarn.lock
+.env
+.env.local
+
+# Test & Examples (included as reference)
+# examples/     <- INCLUDED for reference
+test.js.bak
+*.test.js
+coverage/
+.nyc_output/
+
+# Documentation (INCLUDED for users)
+# README.md     <- INCLUDED
+# CONTRIBUTING.md <- INCLUDED
+# SECURITY.md     <- INCLUDED
+# CHANGELOG.md    <- INCLUDED
+
+# Logs
+*.log
+.log/
+logs/
+
+# System
+.DS_Store
+Thumbs.db
+
+# CI/CD  
+.travis.yml
+.circleci/
+.github/workflows/
+
+# Package artifacts (handled by napi)
+# index.node files are auto-generated and included

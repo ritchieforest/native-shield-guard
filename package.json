@@ -1,27 +1,97 @@
 {
-  "name": "healthcare-firewall",
-  "version": "1.0.0",
+  "name": "native-shield-guard",
+  "version": "2.0.0",
+  "description": "Next-generation behavioral protection engine for Node.js - Sub-millisecond threat detection powered by Rust ML",
+  "license": "MIT",
+  "author": {
+    "name": "Villalba Ricardo Daniel",
+    "email": "ricardo@example.com"
+  },
+  "keywords": [
+    "security",
+    "firewall",
+    "behavioral",
+    "ddos",
+    "bot-detection",
+    "intrusion-detection",
+    "machine-learning",
+    "rust-native",
+    "anomaly-detection",
+    "rate-limiting",
+    "honeypot",
+    "sql-injection",
+    "xss",
+    "polymorphic-attacks",
+    "healthcare",
+    "nodejs",
+    "express",
+    "fastify"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-org/native-shield-guard"
+  },
+  "homepage": "https://github.com/your-org/native-shield-guard#readme",
+  "bugs": {
+    "url": "https://github.com/your-org/native-shield-guard/issues"
+  },
   "main": "index.js",
   "types": "index.d.ts",
+  "files": [
+    "index.js",
+    "index.d.ts",
+    "*.node"
+  ],
+  "engines": {
+    "node": ">=14.0.0"
+  },
   "napi": {
-    "name": "healthcare-firewall",
+    "name": "native-shield-guard",
+    "triples": {
+      "defaults": true,
+      "additional": [
+        "x86_64-unknown-linux-musl",
+        "aarch64-unknown-linux-gnu",
+        "armv7-unknown-linux-gnueabihf"
+      ]
+    },
     "package": {
-      "name": "healthcare-firewall"
+      "name": "native-shield-guard"
     }
   },
   "scripts": {
     "artifacts": "napi artifacts",
     "build": "napi build --release",
     "build:debug": "napi build",
+    "build:test": "npm run build:debug && npm test",
     "prepublishOnly": "napi prepublish -t npm",
     "test": "node test.js",
+    "test:bench": "node examples/normal-traffic-simulator.js",
+    "test:bot": "node examples/bot-login-attack.js",
+    "test:brute": "node examples/brute-force-accounts.js",
+    "test:fuzzy": "node examples/fuzzy-attack.js",
+    "test:honeypot": "node examples/honeypot-test.js",
+    "test:all": "npm run test:bench && npm run test:bot && npm run test:brute && npm run test:fuzzy && npm run test:honeypot",
     "universal": "napi universal",
-    "version": "napi version"
+    "version": "napi version",
+    "lint": "eslint . --fix",
+    "format": "prettier --write \"*.md examples/**/*.js \""
   },
   "dependencies": {
-    "express": "^4.18.2"
+    "debug": "^4.3.4"
   },
   "devDependencies": {
-    "@napi-rs/cli": "^2.18.4"
+    "@napi-rs/cli": "^2.18.4",
+    "express": "^4.18.2",
+    "fastify": "^4.24.3",
+    "eslint": "^8.50.0",
+    "prettier": "^3.0.3"
+  },
+  "optionalDependencies": {
+    "healthcare-firewall": "*"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "access": "public"
   }
 }
