@@ -1,6 +1,6 @@
 {
   "name": "native-shield-guard",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "Next-generation behavioral protection engine for Node.js - Sub-millisecond threat detection powered by Rust ML",
   "license": "MIT",
   "author": {
