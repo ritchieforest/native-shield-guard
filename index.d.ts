@@ -7,14 +7,71 @@ export declare function reloadConfig(): boolean
 export declare function saveState(): boolean
 export declare function loadState(): boolean
 export declare function initFirewall(): boolean
+/**
+ * Get the structural DNA hash of a request body
+ * Returns hex-encoded hash of canonized JSON structure
+ * Used to group similar attacks regardless of payload values
+ */
 export declare function getStructuralSignature(body: string): string
+/**
+ * Analyze request similarity using Jaro-Winkler string matching
+ * Detects polymorphic attacks by comparing recent request bodies
+ * Returns similarity score 0.0-1.0; >0.90 triggers reputation penalty
+ * Also detects botnet clusters via shared header fingerprints (>5 IPs same headers)
+ */
 export declare function analyzeStructuralSimilarity(ip: string, headers: string, body: string, size: number): number
+/** Manually log a custom message for an IP (for integration with external systems) */
 export declare function logMessage(ip: string, message: string): void
+/**
+ * Persist learned threat intelligence: CMS frequency table + rhythm history → oxide.brain
+ * Call this periodically (e.g., before shutdown) to preserve learning across restarts
+ */
 export declare function saveIntelligence(): void
+/**
+ * Restore previously learned threat intelligence from oxide.brain
+ * Automatically called on init, but can be called manually for hot-reload
+ */
 export declare function loadIntelligence(): void
+/**
+ * Check if IP:path combination is allowed (whitelist + active bans)
+ * Returns false if: IP is currently banned OR path not in urls_enabled OR IP not in allowed_ips
+ */
 export declare function checkAccess(ip: string, path: string): boolean
+/**
+ * Check input against malicious pattern detection (SQL, XSS, RCE, etc.)
+ * Returns true if malicious pattern found. Increments violations and reputation penalties.
+ * Auto-bans IP after max_violations reached.
+ */
 export declare function checkMaliciousInput(ip: string, input: string): boolean
+/**
+ * Multi-factor behavior analysis: honeypots + fingerprint matching + trust scoring
+ * Returns true if IP allowed, false if banned/suspicious
+ *
+ * Detection logic:
+ * 1. Check if IP is currently banned (with expiry cleanup)
+ * 2. Penalize honeypot hits (deception path access)
+ * 3. Penalize suspicious fingerprints shared with other high-score IPs
+ * 4. Force ban if trust_score drops below MIN_TRUST_SCORE_FOR_BLOCK
+ */
 export declare function analyzeBehavior(ip: string, path: string, fingerprint: string): boolean
+/**
+ * Record a request event for this IP
+ * Maintains: CMS frequency counter + rhythm inter-arrival time history (last 15 timestamps)
+ * Used by predictThreat for botnet detection via request timing analysis
+ */
 export declare function recordEvent(ip: string, fingerprint: string): void
+/**
+ * Composite threat scoring combining 3 detection methods:
+ *   1. Request frequency (CMS): HIGH_FREQ_THRESHOLD → +0.4, MID_FREQ_THRESHOLD → +0.2
+ *   2. Bloom filter (known attack fingerprint): +0.5
+ *   3. Rhythmic analysis (botnet timing): CV < RHYTHM_CV_THRESHOLD → +0.8
+ *
+ * Returns normalized score: 0.0 (safe) to 1.0 (definitive threat)
+ * Uses Exponential Moving Average (alpha=EMA_ALPHA) for robust statistical analysis
+ */
 export declare function predictThreat(ip: string, fingerprint: string): number
+/**
+ * Get real-time security statistics for monitoring and dashboards
+ * Returns counts: active_bans, tracked_ips, reputation_records
+ */
 export declare function getSecurityStatus(): Record<string, number>
