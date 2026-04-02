@@ -1,6 +1,6 @@
 {
   "name": "native-shield-guard",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Next-generation behavioral protection engine for Node.js - Sub-millisecond threat detection powered by Rust ML",
   "license": "MIT",
   "author": {
@@ -29,7 +29,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/ritchieforest/native-shield-guard/"
+    "url": "git+https://github.com/ritchieforest/native-shield-guard/"
   },
   "homepage": "https://github.com/ritchieforest/native-shield-guard/#readme",
   "bugs": {
@@ -88,7 +88,12 @@
     "prettier": "^3.0.3"
   },
   "optionalDependencies": {
-    "healthcare-firewall": "*"
+    "native-shield-guard-win32-x64-msvc": "2.0.1",
+    "native-shield-guard-darwin-x64": "2.0.1",
+    "native-shield-guard-linux-x64-gnu": "2.0.1",
+    "native-shield-guard-linux-x64-musl": "2.0.1",
+    "native-shield-guard-linux-arm64-gnu": "2.0.1",
+    "native-shield-guard-linux-arm-gnueabihf": "2.0.1"
   },
   "publishConfig": {
     "registry": "https://registry.npmjs.org/",

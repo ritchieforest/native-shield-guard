@@ -1,4 +1,4 @@
-const native = require('./healthcare-firewall.node');
+const native = require('./native-shield-guard.node');
 
 /**
  * Oxide-Gate: Native Security Library
