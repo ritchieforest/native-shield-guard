@@ -16,7 +16,7 @@ export declare function getStructuralSignature(body: string): string
 /**
  * Analyze request similarity using Jaro-Winkler string matching
  * Detects polymorphic attacks by comparing recent request bodies
- * Returns similarity score 0.0-1.0; >0.90 triggers reputation penalty
+ * Returns similarity score 0.0-1.0; >threshold triggers reputation penalty
  * Also detects botnet clusters via shared header fingerprints (>5 IPs same headers)
  */
 export declare function analyzeStructuralSimilarity(ip: string, headers: string, body: string, size: number): number
@@ -35,6 +35,7 @@ export declare function loadIntelligence(): void
 /**
  * Check if IP:path combination is allowed (whitelist + active bans)
  * Returns false if: IP is currently banned OR path not in urls_enabled OR IP not in allowed_ips
+ * urls_enabled supports wildcards: "*", "/api/*", "/admin/*/delete"
  */
 export declare function checkAccess(ip: string, path: string): boolean
 /**
@@ -62,12 +63,12 @@ export declare function analyzeBehavior(ip: string, path: string, fingerprint: s
 export declare function recordEvent(ip: string, fingerprint: string): void
 /**
  * Composite threat scoring combining 3 detection methods:
- *   1. Request frequency (CMS): HIGH_FREQ_THRESHOLD → +0.4, MID_FREQ_THRESHOLD → +0.2
+ *   1. Request frequency (CMS): high_freq_threshold → +0.4, mid threshold → +0.2
  *   2. Bloom filter (known attack fingerprint): +0.5
- *   3. Rhythmic analysis (botnet timing): CV < RHYTHM_CV_THRESHOLD → +0.8
+ *   3. Rhythmic analysis (botnet timing): CV < rhythm_cv_threshold → +0.8
  *
  * Returns normalized score: 0.0 (safe) to 1.0 (definitive threat)
- * Uses Exponential Moving Average (alpha=EMA_ALPHA) for robust statistical analysis
+ * Uses Exponential Moving Average for robust statistical analysis
  */
 export declare function predictThreat(ip: string, fingerprint: string): number
 /**

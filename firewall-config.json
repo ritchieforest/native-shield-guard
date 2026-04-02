@@ -1,22 +1,37 @@
 {
   "urls_enabled": [
-    "/api/v1/public-stats-by-element",
-    "/api/shield/status",
-    "/api/shield/reload",
-    "/api/shield/insights",
-    "/api/shield/save"
+    "*",
+    "/api/usuarios/*"
   ],
   "allowed_ips": [
     "*"
   ],
   "security_enabled": true,
-  "max_violations": 3,
+  "max_violations": 5,
   "honeypots": [
-    "/phpmyadmin",
-    "/wp-login.php",
-    "/.env"
+    "/admin",
+    "/.git",
+    "/config.php",
+    "/wp-admin"
   ],
   "max_score": 100.0,
   "logging_enabled": true,
-  "log_file": "firewall.log"
+  "log_file": "firewall.log",
+  
+  "structural_similarity_threshold": 0.95,
+  "rhythm_cv_threshold": 0.12,
+  "ema_alpha": 0.3,
+  "honeypot_penalty_score": 50.0,
+  "honeypot_penalty_trust": 60.0,
+  "fuzzy_detect_score_penalty": 25.0,
+  "fuzzy_detect_trust_penalty": 20.0,
+  "malicious_pattern_score": 15.0,
+  "malicious_pattern_trust": 10.0,
+  "high_freq_threshold": 100,
+  "botnet_cluster_size": 5,
+  "min_trust_score_for_block": 20.0,
+  "ban_duration_secs": 3600,
+  "malicious_ban_duration_secs": 600,
+  "suspicious_fp_score": 20.0,
+  "suspicious_fp_trust": 15.0
 }

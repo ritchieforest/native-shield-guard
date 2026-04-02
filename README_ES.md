@@ -127,7 +127,7 @@ fastify.listen({ port: 3000 });
 
 ## ⚙️ Configuración
 
-Crea `firewall-config.json` en la raíz de tu proyecto:
+Crea `firewall-config.json` en la raíz de tu proyecto. Ejemplo completo:
 
 ```json
 {
@@ -138,12 +138,32 @@ Crea `firewall-config.json` en la raíz de tu proyecto:
   "honeypots": ["/admin", "/.git", "/config.php", "/wp-admin"],
   "max_score": 100.0,
   "logging_enabled": true,
-  "log_file": "firewall.log"
+  "log_file": "firewall.log",
+  
+  "structural_similarity_threshold": 0.95,
+  "rhythm_cv_threshold": 0.12,
+  "ema_alpha": 0.3,
+  "honeypot_penalty_score": 50.0,
+  "honeypot_penalty_trust": 60.0,
+  "fuzzy_detect_score_penalty": 25.0,
+  "fuzzy_detect_trust_penalty": 20.0,
+  "malicious_pattern_score": 15.0,
+  "malicious_pattern_trust": 10.0,
+  "high_freq_threshold": 100,
+  "botnet_cluster_size": 5,
+  "min_trust_score_for_block": 20.0,
+  "ban_duration_secs": 3600,
+  "malicious_ban_duration_secs": 600,
+  "suspicious_fp_score": 20.0,
+  "suspicious_fp_trust": 15.0
 }
 ```
 
 ### Opciones de Configuración
 
+Todas estas opciones se cargan automáticamente en tiempo de ejecución. Cambialas y llama a `reloadConfig()` sin necesidad de recompilar.
+
+**Básicas:**
 | Opción | Tipo | Por defecto | Descripción |
 |--------|------|-------------|-------------|
 | `urls_enabled` | string[] | — | Rutas protegidas (soporta wildcards: `/api/*`) |
@@ -153,6 +173,26 @@ Crea `firewall-config.json` en la raíz de tu proyecto:
 | `honeypots` | string[] | `[]` | Rutas falsas para atrapar escaneadores |
 | `logging_enabled` | boolean | `true` | Escribir eventos a disco (auto-rotación 1GB) |
 | `log_file` | string | `firewall.log` | Nombre del archivo de log (en carpeta `.log/`) |
+
+**Tuning de Detección (Configurables en Tiempo de Ejecución):**
+| Opción | Tipo | Por defecto | Descripción |
+|--------|------|-------------|-------------|
+| `structural_similarity_threshold` | f64 | 0.90 | Umbral para detectar ataques polimórficos (0.0-1.0) |
+| `rhythm_cv_threshold` | f64 | 0.12 | Coeficiente de Variación para detección botnet (menor = más estricto) |
+| `ema_alpha` | f64 | 0.3 | Peso EMA para análisis rítmico (0.1-0.5) |
+| `honeypot_penalty_score` | f32 | 50.0 | Penalidad de reputación por acceso a honeypot |
+| `honeypot_penalty_trust` | f32 | 60.0 | Penalidad de confianza por acceso a honeypot |
+| `fuzzy_detect_score_penalty` | f32 | 25.0 | Penalidad por similitud estructural detectada |
+| `fuzzy_detect_trust_penalty` | f32 | 20.0 | Penalidad de confianza por similitud |
+| `malicious_pattern_score` | f32 | 15.0 | Penalidad por patrón malicioso detectado |
+| `malicious_pattern_trust` | f32 | 10.0 | Penalidad de confianza por patrón |
+| `high_freq_threshold` | u32 | 100 | Solicitudes para marcar como alta frecuencia |
+| `botnet_cluster_size` | u32 | 5 | IPs necesarias para detectar cluster de botnet |
+| `min_trust_score_for_block` | f32 | 20.0 | Score mínimo de confianza antes de bloquear |
+| `ban_duration_secs` | u64 | 3600 | Duración del ban por comportamiento sospechoso (segundos) |
+| `malicious_ban_duration_secs` | u64 | 600 | Duración del ban por ataque detectado (segundos) |
+| `suspicious_fp_score` | f32 | 20.0 | Penalidad por huella digital sospechosa |
+| `suspicious_fp_trust` | f32 | 15.0 | Penalidad de confianza por huella sospechosa |
 
 ---
 
@@ -342,19 +382,50 @@ logMessage('203.0.113.42', 'Intento de apropiación de cuenta - 10 inicios falli
 
 ## 🚨 Despliegue en Producción
 
-### 1. Ajuste de Rendimiento
+### 1. Ajuste de Rendimiento (Sin Recompilar)
 
-Ajusta estas constantes en el código para tu perfil de tráfico:
+Modifica valores en `firewall-config.json` y recarga sin parar el servidor:
 
-```rust
-const RHYTHM_CV_THRESHOLD: f64 = 0.12;        // ← Menor = más estricto
-const HIGH_FREQ_THRESHOLD: u32 = 100;         // ← IPs > 100 req/ventana
-const MIN_TRUST_SCORE_FOR_BLOCK: f32 = 20.0; // ← Umbral de confianza
+```javascript
+// En tu app
+app.post('/admin/reload-config', (req, res) => {
+  const success = lib.reloadConfig();
+  res.json({ success, message: 'Configuración recargada' });
+});
 ```
 
-Ver [IMPROVEMENTS.md](./IMPROVEMENTS.md) para todos los parámetros ajustables.
+**Ejemplos de ajuste:**
 
-### 2. Panel de Monitoreo
+```json
+// ← Más permisivo (reduce falsos positivos en login)
+{
+  "structural_similarity_threshold": 0.98,
+  "fuzzy_detect_score_penalty": 5.0
+}
+
+// ← Más estricto (aumenta detección en APIs críticas)
+{
+  "rhythm_cv_threshold": 0.08,
+  "malicious_ban_duration_secs": 1800
+}
+```
+
+### 2. Recargar Configuración en Tiempo de Ejecución
+
+Llamá a `reloadConfig()` después de cambiar `firewall-config.json`:
+
+```javascript
+const lib = require('native-shield-guard');
+const fs = require('fs');
+
+// Monitorear cambios en config
+fs.watch('firewall-config.json', () => {
+  console.log('Config cambiada, recargando...');
+  lib.reloadConfig();
+});
+```
+
+### 3. Panel de Monitoreo
 
 ```javascript
 // Exponer estadísticas cada 30 segundos
@@ -368,7 +439,7 @@ app.get('/health/security', (req, res) => {
 });
 ```
 
-### 3. Rotación y Retención de Logs
+### 4. Rotación y Retención de Logs
 
 Los logs se rotan automáticamente en 1GB. Archivar con:
 

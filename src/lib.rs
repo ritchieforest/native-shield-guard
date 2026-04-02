@@ -15,47 +15,10 @@ use chrono::Local;
 // ============================================================================
 // PERFORMANCE TUNING CONSTANTS - Production-Ready Configuration
 // ============================================================================
-// These constants can be moved to firewall-config.json for runtime tuning
+// Most constants are now configurable in firewall-config.json - see FirewallConfig struct
 
-/// Coefficient of Variation (CV) threshold for detecting botnet rhythmic patterns
-/// Lower values = more strict. Range: 0.01 - 0.30 (0.12 is optimal for most cases)
-const RHYTHM_CV_THRESHOLD: f64 = 0.12;
-
-/// EMA smoothing factor for rhythmic analysis (exponential weight)
-/// Higher = more recent requests weighted. Range: 0.1 - 0.5
-const EMA_ALPHA: f64 = 0.3;
-
-/// Honeypot hit reputation penalty
-const HONEYPOT_PENALTY_SCORE: f32 = 50.0;
-const HONEYPOT_PENALTY_TRUST: f32 = 60.0;
-
-/// Fuzzy detection penalties (structural similarity > 0.90)
-const FUZZY_DETECT_SCORE_PENALTY: f32 = 25.0;
-const FUZZY_DETECT_TRUST_PENALTY: f32 = 20.0;
-
-/// Malicious pattern detection penalties
-const MALICIOUS_PATTERN_SCORE: f32 = 15.0;
-const MALICIOUS_PATTERN_TRUST: f32 = 10.0;
-
-/// Suspicious fingerprint detected across IPs
-const SUSPICIOUS_FP_SCORE: f32 = 20.0;
-const SUSPICIOUS_FP_TRUST: f32 = 15.0;
-
-/// Request frequency thresholds for CMS sketch analysis
-const HIGH_FREQ_THRESHOLD: u32 = 100;  // score += 0.4
-const MID_FREQ_THRESHOLD: u32 = 50;    // score += 0.2
-
-/// Botnet cluster detection (if N+ IPs share same header hash)
-const BOTNET_CLUSTER_SIZE_THRESHOLD: usize = 5;
-const BOTNET_CLUSTER_SCORE: f64 = 1.0;  // definitive block
-
-/// Trust score thresholds
-const MIN_TRUST_SCORE_FOR_BLOCK: f32 = 20.0;
-const BAN_DURATION_SECS: u64 = 3600;   // 1 hour
-const MALICIOUS_BAN_DURATION_SECS: u64 = 600;  // 10 minutes
-
-/// Structural similarity threshold
-const STRUCTURAL_SIMILARITY_THRESHOLD: f64 = 0.90;
+/// Botnet cluster detection score (definitive block)
+const BOTNET_CLUSTER_SCORE: f64 = 1.0;
 
 /// Bloom filter collision penalty
 const BLOOM_ATTACK_SCORE: f64 = 0.5;
@@ -126,7 +89,75 @@ struct FirewallConfig {
     logging_enabled: bool,
     /// Log file name (stored in .log/ directory with 1GB auto-rotation)
     log_file: String,
+    /// Similarity threshold for structural analysis (0.0-1.0, default: 0.90)
+    #[serde(default = "default_structural_similarity_threshold")]
+    structural_similarity_threshold: f64,
+    
+    // ===== Tuning Constants (all optional with sensible defaults) =====
+    /// CV threshold for botnet rhythm detection (default: 0.12, lower=stricter)
+    #[serde(default = "default_rhythm_cv_threshold")]
+    rhythm_cv_threshold: f64,
+    /// EMA alpha for rhythmic analysis (default: 0.3, range: 0.1-0.5)
+    #[serde(default = "default_ema_alpha")]
+    ema_alpha: f64,
+    /// Honeypot hit score penalty (default: 50.0)
+    #[serde(default = "default_honeypot_penalty_score")]
+    honeypot_penalty_score: f32,
+    /// Honeypot hit trust penalty (default: 60.0)
+    #[serde(default = "default_honeypot_penalty_trust")]
+    honeypot_penalty_trust: f32,
+    /// Fuzzy detection score penalty (default: 25.0)
+    #[serde(default = "default_fuzzy_detect_score_penalty")]
+    fuzzy_detect_score_penalty: f32,
+    /// Fuzzy detection trust penalty (default: 20.0)
+    #[serde(default = "default_fuzzy_detect_trust_penalty")]
+    fuzzy_detect_trust_penalty: f32,
+    /// Malicious pattern score penalty (default: 15.0)
+    #[serde(default = "default_malicious_pattern_score")]
+    malicious_pattern_score: f32,
+    /// Malicious pattern trust penalty (default: 10.0)
+    #[serde(default = "default_malicious_pattern_trust")]
+    malicious_pattern_trust: f32,
+    /// High frequency threshold (default: 100 requests)
+    #[serde(default = "default_high_freq_threshold")]
+    high_freq_threshold: u32,
+    /// Botnet cluster size threshold (default: 5 IPs)
+    #[serde(default = "default_botnet_cluster_size")]
+    botnet_cluster_size: usize,
+    /// Trust score threshold for blocking (default: 20.0)
+    #[serde(default = "default_min_trust_score")]
+    min_trust_score_for_block: f32,
+    /// Ban duration in seconds (default: 3600 = 1 hour)
+    #[serde(default = "default_ban_duration")]
+    ban_duration_secs: u64,
+    /// Malicious pattern ban duration in seconds (default: 600 = 10 minutes)
+    #[serde(default = "default_malicious_ban_duration")]
+    malicious_ban_duration_secs: u64,
+    /// Suspicious fingerprint score penalty (default: 20.0)
+    #[serde(default = "default_suspicious_fp_score")]
+    suspicious_fp_score: f32,
+    /// Suspicious fingerprint trust penalty (default: 15.0)
+    #[serde(default = "default_suspicious_fp_trust")]
+    suspicious_fp_trust: f32,
 }
+
+// Default functions for all tunable constants
+fn default_structural_similarity_threshold() -> f64 { 0.90 }
+fn default_rhythm_cv_threshold() -> f64 { 0.12 }
+fn default_ema_alpha() -> f64 { 0.3 }
+fn default_honeypot_penalty_score() -> f32 { 50.0 }
+fn default_honeypot_penalty_trust() -> f32 { 60.0 }
+fn default_fuzzy_detect_score_penalty() -> f32 { 25.0 }
+fn default_fuzzy_detect_trust_penalty() -> f32 { 20.0 }
+fn default_malicious_pattern_score() -> f32 { 15.0 }
+fn default_malicious_pattern_trust() -> f32 { 10.0 }
+fn default_high_freq_threshold() -> u32 { 100 }
+fn default_botnet_cluster_size() -> usize { 5 }
+fn default_min_trust_score() -> f32 { 20.0 }
+fn default_ban_duration() -> u64 { 3600 }
+fn default_malicious_ban_duration() -> u64 { 600 }
+fn default_suspicious_fp_score() -> f32 { 20.0 }
+fn default_suspicious_fp_trust() -> f32 { 15.0 }
 
 static CONFIG: Lazy<RwLock<Option<FirewallConfig>>> = Lazy::new(|| RwLock::new(load_config_from_file()));
 
@@ -169,28 +200,32 @@ static BLOCKED_IPS: Lazy<Mutex<HashMap<String, SystemTime>>> = Lazy::new(|| Mute
 
 /// Comprehensive malicious pattern detection using RegexSet (compiled once at startup)
 /// Covers: SQL Injection, XSS, Path Traversal, Command Injection, XXE, SSRF, Log Injection
+/// IMPORTANT: Patterns are tuned to avoid false positives on legitimate special characters
 static MALICIOUS_PATTERNS: Lazy<RegexSet> = Lazy::new(|| {
     RegexSet::new(&[
-        // SQL Injection patterns
-        r"(?i)(union.*select|drop.*table|truncate.*table|insert.*into|delete.*from|sleep\(|benchmark\(|or.*1=1|or.*true|--|;|\/\*|\*\/|xp_|sp_)",
+        // SQL Injection patterns - more specific sequences, not just individual chars
+        r"(?i)\b(union\s+select|drop\s+table|truncate\s+table|insert\s+into|delete\s+from|or\s+1\s*=\s*1|or\s+true|sleep\s*\(|benchmark\s*\(|xp_|sp_)\b",
         
-        // XSS patterns
-        r"(?i)(<script|javascript:|on\w*=|eval\(|expression\(|alert\(|confirm\(|prompt\(|onerror|onload|onmouseover|onmouseenter|onclick|ondblclick|onchange|<iframe|<object|<embed|<img.*on)",
+        // SQL comment syntax - but NOT dashes used in normal contexts
+        r"(?i)(\-\-\s*[a-z]|/\*|\*/|;\s*(select|drop|insert|delete|update|create))",
         
-        // Path Traversal patterns
-        r"(\.\./|\.\.|%2e%2e|\.\\\.|\.\\\.|%2e%2e%2f|..\\|NUL|CON|PRN|AUX|COM|LPT)",
+        // XSS patterns - tags and event handlers
+        r"(?i)(<script|javascript:|on\w+\s*=|eval\s*\(|expression\s*\(|alert\s*\(|confirm\s*\(|prompt\s*\(|onerror|onload|onmouseover|onmouseenter|onclick|ondblclick|onchange|<iframe|<object|<embed|<img\s+[^>]*on)",
         
-        // Command Injection patterns
-        r"(\$\(|`|\||&|;|&&|\|\||\n|\r|\t|cmd\.exe|bash|sh|powershell)",
+        // Path Traversal - dangerous sequences (NOT just .. which appear in versions)
+        r"(?i)(\.\./\.\./|\.\.\\\.\.\\|\.\.\%2f|\.\.\%5c|%252e%252e|CON:|PRN:|AUX:|COM\d:|LPT\d:|NUL:)",
+        
+        // Command Injection - shell metacharacters in dangerous contexts only
+        r"(?i)(;\s*(bash|sh|powershell|cmd\.exe)|\$\(.*\)|\|\s*(nc|netcat|bash|sh)|&&\s*(bash|sh)|\|\|\s*(bash|sh)|`.*`|>\s*/dev/)",
         
         // XXE (XML External Entity) patterns
-        r"(?i)(<!ENTITY|SYSTEM|PUBLIC|DOCTYPE|xml.*encoding|[<]?\?xml|\.dtd|jar:|file://|php://|expect://|zlib://)",
+        r#"(?i)(<!ENTITY|SYSTEM\s+["']|PUBLIC\s+["']|DOCTYPE.*\[|xml.*SYSTEM|\.dtd|jar:|file://|php://|expect://|zlib://)"#,
         
-        // SSRF patterns
-        r"(?i)(localhost|127\.0|169\.254|10\.\d|172\.(1[6-9]|2[0-9]|3[01])|192\.168|::1|\[::\]|file://|gopher://|dict://|ldap://)",
+        // SSRF patterns - private IPs and dangerous protocols
+        r"(?i)(\blocalhost\b|127\.0\.|169\.254\.|10\.\d|172\.(1[6-9]|2[0-9]|3[01])\.|192\.168\.|::1|gopher://|dict://|ldap://|file://[^/])",
         
-        // Log Injection patterns  
-        r"(\r\n|\n\r|\x0d\x0a|%0d%0a|%0a|%0d|\\r\\n|\\n|LogFormatted|\[CRITICAL\]|\[ALERT\])",
+        // Log Injection - newline sequences (NOT just \t, \r, \n which are common)  
+        r"(\r\n[\s]*(\[|CRITICAL|ALERT|ERROR)|%0d%0a[\s]*(\[|CRITICAL|ALERT)|%0a[\s]*(\[|CRITICAL|ALERT))",
     ]).unwrap()
 });
 
@@ -334,7 +369,7 @@ pub fn get_structural_signature(body: String) -> String {
 
 /// Analyze request similarity using Jaro-Winkler string matching
 /// Detects polymorphic attacks by comparing recent request bodies
-/// Returns similarity score 0.0-1.0; >0.90 triggers reputation penalty
+/// Returns similarity score 0.0-1.0; >threshold triggers reputation penalty
 /// Also detects botnet clusters via shared header fingerprints (>5 IPs same headers)
 #[napi(js_name = "analyzeStructuralSimilarity")]
 pub fn analyze_structural_similarity(ip: String, headers: String, body: String, size: u32) -> f64 {
@@ -343,15 +378,20 @@ pub fn analyze_structural_similarity(ip: String, headers: String, body: String, 
     let header_hash = hasher.finish();
     let now = get_now_secs();
 
+    let config_guard = CONFIG.read().unwrap();
+    let config = match *config_guard { Some(ref c) => c, None => return 0.0 };
+
     {
         let mut clusters = BOTNET_CLUSTERS.lock().unwrap();
         let ips = clusters.entry(header_hash).or_insert(HashSet::new());
         ips.insert(ip.clone());
-        if ips.len() > BOTNET_CLUSTER_SIZE_THRESHOLD {
+        if ips.len() > config.botnet_cluster_size {
             log_event(&ip, "DETECTADO CLUSTER DE BOTNET: Bloqueando huella digital de headers");
             return BOTNET_CLUSTER_SCORE; 
         }
     }
+
+    let threshold = config.structural_similarity_threshold;
 
     let mut max_similarity = 0.0;
     let history = HISTORY.lock().unwrap();
@@ -376,7 +416,7 @@ pub fn analyze_structural_similarity(ip: String, headers: String, body: String, 
         });
     }
 
-    if max_similarity > STRUCTURAL_SIMILARITY_THRESHOLD {
+    if max_similarity > threshold {
         let mut stats = TOTAL_FUZZY_DETECTS.lock().unwrap();
         *stats += 1;
         let mut reputation = REPUTATION_MAP.lock().unwrap();
@@ -386,8 +426,8 @@ pub fn analyze_structural_similarity(ip: String, headers: String, body: String, 
             last_seen: now,
             fingerprint: header_hash.to_string(),
         });
-        entry.score += FUZZY_DETECT_SCORE_PENALTY;
-        entry.trust_score -= FUZZY_DETECT_TRUST_PENALTY;
+        entry.score += config.fuzzy_detect_score_penalty;
+        entry.trust_score -= config.fuzzy_detect_trust_penalty;
     }
 
     max_similarity
@@ -451,6 +491,7 @@ pub fn load_intelligence() {
 
 /// Check if IP:path combination is allowed (whitelist + active bans)
 /// Returns false if: IP is currently banned OR path not in urls_enabled OR IP not in allowed_ips
+/// urls_enabled supports wildcards: "*", "/api/*", "/admin/*/delete"
 #[napi(js_name = "checkAccess")]
 pub fn check_access(ip: String, path: String) -> bool {
     {
@@ -463,11 +504,46 @@ pub fn check_access(ip: String, path: String) -> bool {
 
     let config_guard = CONFIG.read().unwrap();
     let config = match *config_guard { Some(ref c) => c, None => return false };
-    if !config.urls_enabled.contains(&path) { return false; }
+    
+    // Check if path matches any of the enabled URLs (with wildcard support)
+    let path_allowed = config.urls_enabled.iter().any(|enabled| {
+        enabled == "*" || 
+        enabled == &path || 
+        (enabled.contains('*') && path_matches_pattern(&path, enabled))
+    });
+    if !path_allowed { return false; }
 
     config.allowed_ips.iter().any(|allowed| {
         allowed == "*" || allowed == &ip || (allowed.ends_with(".*") && ip.starts_with(&allowed[..allowed.len() - 1]))
     })
+}
+
+/// Simple wildcard pattern matching for URLs
+/// Supports: *, /api/*, /admin/*/delete, etc.
+fn path_matches_pattern(path: &str, pattern: &str) -> bool {
+    let parts_path: Vec<&str> = path.split('/').collect();
+    let parts_pattern: Vec<&str> = pattern.split('/').collect();
+    
+    // Different lengths can't match unless pattern ends with /*
+    if parts_path.len() != parts_pattern.len() && !pattern.ends_with("/*") {
+        return false;
+    }
+
+    // If pattern is just * match everything
+    if pattern == "*" {
+        return true;
+    }
+
+    // Match each part: exact match or * for any path segment
+    for (i, pattern_part) in parts_pattern.iter().enumerate() {
+        if i >= parts_path.len() {
+            return false;
+        }
+        
+        if pattern_part == &"*" { continue; }
+        if parts_path[i] != *pattern_part { return false; }
+    }
+    true
 }
 
 /// Check input against malicious pattern detection (SQL, XSS, RCE, etc.)
@@ -490,13 +566,13 @@ pub fn check_malicious_input(ip: String, input: String) -> bool {
             let entry = reputation.entry(ip.clone()).or_insert(IpReputation {
                 score: 0.0, trust_score: 100.0, last_seen: get_now_secs(), fingerprint: String::new()
             });
-            entry.score += MALICIOUS_PATTERN_SCORE;
-            entry.trust_score -= MALICIOUS_PATTERN_TRUST;
+            entry.score += config.malicious_pattern_score;
+            entry.trust_score -= config.malicious_pattern_trust;
         }
 
         if record.count >= config.max_violations {
             let mut blocked = BLOCKED_IPS.lock().unwrap();
-            blocked.insert(ip, SystemTime::now() + Duration::from_secs(MALICIOUS_BAN_DURATION_SECS));
+            blocked.insert(ip, SystemTime::now() + Duration::from_secs(config.malicious_ban_duration_secs));
             record.count = 0;
         }
         return true;
@@ -546,8 +622,8 @@ pub fn analyze_behavior(ip: String, path: String, fingerprint: String) -> bool {
     // Detect honeypot hits (deception paths)
     let is_honeypot = config.honeypots.contains(&path);
     if is_honeypot {
-        entry.score += HONEYPOT_PENALTY_SCORE;
-        entry.trust_score -= HONEYPOT_PENALTY_TRUST;
+        entry.score += config.honeypot_penalty_score;
+        entry.trust_score -= config.honeypot_penalty_trust;
         log_event(&ip, &format!("Honeypot detectado en ruta: {}", path));
     }
 
@@ -558,17 +634,17 @@ pub fn analyze_behavior(ip: String, path: String, fingerprint: String) -> bool {
 
     if suspicious_fp {
         if let Some(e) = reputation.get_mut(&ip) {
-            e.score += SUSPICIOUS_FP_SCORE;
-            e.trust_score -= SUSPICIOUS_FP_TRUST;
+            e.score += config.suspicious_fp_score;
+            e.trust_score -= config.suspicious_fp_trust;
         }
     }
 
     // Force ban if trust falls below threshold
     let final_trust = reputation.get(&ip).map(|e| e.trust_score).unwrap_or(100.0);
-    if final_trust <= MIN_TRUST_SCORE_FOR_BLOCK {
+    if final_trust <= config.min_trust_score_for_block {
         log_event(&ip, &format!("IP bloqueada por baja confianza (TrustScore: {})", final_trust));
         let mut blocked = BLOCKED_IPS.lock().unwrap();
-        blocked.insert(ip, SystemTime::now() + Duration::from_secs(BAN_DURATION_SECS));
+        blocked.insert(ip, SystemTime::now() + Duration::from_secs(config.ban_duration_secs));
         return false;
     }
 
@@ -593,12 +669,12 @@ pub fn record_event(ip: String, _fingerprint: String) {
 }
 
 /// Composite threat scoring combining 3 detection methods:
-///   1. Request frequency (CMS): HIGH_FREQ_THRESHOLD → +0.4, MID_FREQ_THRESHOLD → +0.2
+///   1. Request frequency (CMS): high_freq_threshold → +0.4, mid threshold → +0.2
 ///   2. Bloom filter (known attack fingerprint): +0.5
-///   3. Rhythmic analysis (botnet timing): CV < RHYTHM_CV_THRESHOLD → +0.8
+///   3. Rhythmic analysis (botnet timing): CV < rhythm_cv_threshold → +0.8
 ///
 /// Returns normalized score: 0.0 (safe) to 1.0 (definitive threat)
-/// Uses Exponential Moving Average (alpha=EMA_ALPHA) for robust statistical analysis
+/// Uses Exponential Moving Average for robust statistical analysis
 #[napi(js_name = "predictThreat")]
 pub fn predict_threat_level(ip: String, fingerprint: String) -> f64 {
     let mut score: f64 = 0.0;
@@ -606,13 +682,16 @@ pub fn predict_threat_level(ip: String, fingerprint: String) -> f64 {
     fingerprint.hash(&mut s);
     let fp_hash = s.finish();
 
+    let config_guard = CONFIG.read().unwrap();
+    let config = match *config_guard { Some(ref c) => c, None => return 0.0 };
+
     // Method 1: Frequency analysis via Count-Min Sketch
     let freq = {
         let mut ip_hasher = DefaultHasher::new();
         ip.hash(&mut ip_hasher);
         if let Ok(cms) = CMS_SKETCH.lock() { cms.count(&ip_hasher.finish()) } else { 0 }
     };
-    if freq > HIGH_FREQ_THRESHOLD { score += 0.4; } else if freq > MID_FREQ_THRESHOLD { score += 0.2; }
+    if freq > config.high_freq_threshold { score += 0.4; } else if freq > (config.high_freq_threshold / 2) { score += 0.2; }
 
     // Method 2: Bloom filter attack signature lookup
     if let Ok(bloom) = ATTACK_BLOOM.lock() {
@@ -631,13 +710,13 @@ pub fn predict_threat_level(ip: String, fingerprint: String) -> f64 {
                 let mut ema_m2 = 0.0;
                 for d in &deltas {
                     let delta = d - ema_mean;
-                    ema_mean += EMA_ALPHA * delta;
-                    ema_m2 = (1.0 - EMA_ALPHA) * (ema_m2 + EMA_ALPHA * delta * delta);
+                    ema_mean += config.ema_alpha * delta;
+                    ema_m2 = (1.0 - config.ema_alpha) * (ema_m2 + config.ema_alpha * delta * delta);
                 }
                 
                 // Coefficient of Variation: σ/μ (lower = more mechanical/bot-like)
                 let std_dev = ema_m2.sqrt();
-                if std_dev / (ema_mean + 1.0) < RHYTHM_CV_THRESHOLD { score += 0.8; }
+                if std_dev / (ema_mean + 1.0) < config.rhythm_cv_threshold { score += 0.8; }
             }
         }
     }

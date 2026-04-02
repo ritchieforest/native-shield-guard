@@ -115,7 +115,7 @@ fastify.listen({ port: 3000 });
 
 ## ⚙️ Configuration
 
-Create `firewall-config.json` in your project root:
+Create `firewall-config.json` in your project root with complete example:
 
 ```json
 {
@@ -126,12 +126,32 @@ Create `firewall-config.json` in your project root:
   "honeypots": ["/admin", "/.git", "/config.php", "/wp-admin"],
   "max_score": 100.0,
   "logging_enabled": true,
-  "log_file": "firewall.log"
+  "log_file": "firewall.log",
+  
+  "structural_similarity_threshold": 0.95,
+  "rhythm_cv_threshold": 0.12,
+  "ema_alpha": 0.3,
+  "honeypot_penalty_score": 50.0,
+  "honeypot_penalty_trust": 60.0,
+  "fuzzy_detect_score_penalty": 25.0,
+  "fuzzy_detect_trust_penalty": 20.0,
+  "malicious_pattern_score": 15.0,
+  "malicious_pattern_trust": 10.0,
+  "high_freq_threshold": 100,
+  "botnet_cluster_size": 5,
+  "min_trust_score_for_block": 20.0,
+  "ban_duration_secs": 3600,
+  "malicious_ban_duration_secs": 600,
+  "suspicious_fp_score": 20.0,
+  "suspicious_fp_trust": 15.0
 }
 ```
 
 ### Configuration Options
 
+All these options are loaded at runtime. Change them and call `reloadConfig()` without recompiling.
+
+**Basics:**
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | `urls_enabled` | string[] | — | Protected routes (supports wildcards: `/api/*`) |
@@ -141,6 +161,26 @@ Create `firewall-config.json` in your project root:
 | `honeypots` | string[] | `[]` | Fake paths to catch scanners |
 | `logging_enabled` | boolean | `true` | Write events to disk (1GB auto-rotation) |
 | `log_file` | string | `firewall.log` | Log file name (in `.log/` directory) |
+
+**Detection Tuning (Runtime Configurable):**
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `structural_similarity_threshold` | f64 | 0.90 | Threshold for polymorphic attack detection (0.0-1.0) |
+| `rhythm_cv_threshold` | f64 | 0.12 | Coefficient of Variation for botnet detection (lower = stricter) |
+| `ema_alpha` | f64 | 0.3 | EMA weight for rhythmic analysis (0.1-0.5) |
+| `honeypot_penalty_score` | f32 | 50.0 | Reputation penalty for honeypot access |
+| `honeypot_penalty_trust` | f32 | 60.0 | Trust penalty for honeypot access |
+| `fuzzy_detect_score_penalty` | f32 | 25.0 | Penalty for structural similarity detected |
+| `fuzzy_detect_trust_penalty` | f32 | 20.0 | Trust penalty for similarity |
+| `malicious_pattern_score` | f32 | 15.0 | Penalty for malicious pattern detected |
+| `malicious_pattern_trust` | f32 | 10.0 | Trust penalty for malicious pattern |
+| `high_freq_threshold` | u32 | 100 | Requests to mark as high frequency |
+| `botnet_cluster_size` | u32 | 5 | IPs needed to detect botnet cluster |
+| `min_trust_score_for_block` | f32 | 20.0 | Minimum trust score before blocking |
+| `ban_duration_secs` | u64 | 3600 | Ban duration for suspicious behavior (seconds) |
+| `malicious_ban_duration_secs` | u64 | 600 | Ban duration for detected attacks (seconds) |
+| `suspicious_fp_score` | f32 | 20.0 | Penalty for suspicious fingerprint |
+| `suspicious_fp_trust` | f32 | 15.0 | Trust penalty for suspicious fingerprint |
 
 ---
 
@@ -338,19 +378,50 @@ reloadConfig();
 
 ## 🚨 Production Deployment
 
-### 1. Performance Tuning
+### 1. Performance Tuning (No Recompilation)
 
-Adjust these constants in code for your traffic profile:
+Modify values in `firewall-config.json` and reload without stopping the server:
 
-```rust
-const RHYTHM_CV_THRESHOLD: f64 = 0.12;        // ← Lower = stricter
-const HIGH_FREQ_THRESHOLD: u32 = 100;         // ← IPs > 100 req/window
-const MIN_TRUST_SCORE_FOR_BLOCK: f32 = 20.0; // ← Trust threshold
+```javascript
+// In your app
+app.post('/admin/reload-config', (req, res) => {
+  const success = lib.reloadConfig();
+  res.json({ success, message: 'Config reloaded' });
+});
 ```
 
-See [IMPROVEMENTS.md](./IMPROVEMENTS.md) for all tunable parameters.
+**Tuning examples:**
 
-### 2. Monitoring Dashboard
+```json
+// ← More permissive (reduce false positives in login)
+{
+  "structural_similarity_threshold": 0.98,
+  "fuzzy_detect_score_penalty": 5.0
+}
+
+// ← More strict (increase detection on critical APIs)
+{
+  "rhythm_cv_threshold": 0.08,
+  "malicious_ban_duration_secs": 1800
+}
+```
+
+### 2. Reload Configuration at Runtime
+
+Call `reloadConfig()` after changing `firewall-config.json`:
+
+```javascript
+const lib = require('native-shield-guard');
+const fs = require('fs');
+
+// Watch for config changes
+fs.watch('firewall-config.json', () => {
+  console.log('Config changed, reloading...');
+  lib.reloadConfig();
+});
+```
+
+### 3. Monitoring Dashboard
 
 ```javascript
 // Expose stats every 30 seconds
@@ -364,7 +435,7 @@ app.get('/health/security', (req, res) => {
 });
 ```
 
-### 3. Log Rotation & Retention
+### 4. Log Rotation & Retention
 
 Logs auto-rotate at 1GB. Archive with:
 
